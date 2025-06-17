@@ -2,48 +2,26 @@ import { BrandIconType } from '@/components/ui/BrandIcon';
 
 type PopularTag = {
   href: string;
-  iconType: BrandIconType;
   slug: string;
   title: string;
 };
 
 const popularTags: PopularTag[] = [
   {
-    href: '/tags/javascript',
-    iconType: 'Javascript',
-    slug: 'javascript',
-    title: 'Javascript',
+    href: '/tags/MathandProgramming',
+    slug: 'MathandProgramming',
+    title: 'Math and Programming',
   },
   {
-    href: '/tags/typescript',
-    iconType: 'Typescript',
-    slug: 'typescript',
-    title: 'Typescript',
+    href: '/tags/MachineLearning',
+    slug: 'MachineLearning',
+    title: 'Machine Learning',
   },
   {
-    href: '/tags/nestjs',
-    iconType: 'NestJS',
-    slug: 'nestjs',
-    title: 'NestJS',
-  },
-  {
-    href: '/tags/react',
-    iconType: 'React',
-    slug: 'react',
-    title: 'React',
-  },
-  {
-    href: '/tags/database',
-    iconType: 'Mongodb',
-    slug: 'database',
-    title: 'Database',
-  },
-  {
-    href: '/tags/devops',
-    iconType: 'Docker',
-    slug: 'devops',
-    title: 'Devops',
-  },
+    href: '/tags/Deep Learning',
+    slug: 'DeepLearning',
+    title: 'Deep Learning',
+  }
 ];
 
 export default popularTags;

@@ -2,12 +2,12 @@
 <p align="center"><i>My desire to practice my skills and share my acquired knowledge fuels my endeavors.</i></p>
 
 <div align="center">
-    <a href="https://github.com/Karhdo/karhdo.dev/stargazers"><img src="https://img.shields.io/github/stars/Karhdo/karhdo.dev" alt="Stars Badge"/></a>
-    <a href="https://github.com/Karhdo/karhdo.dev/network/members"><img src="https://img.shields.io/github/forks/Karhdo/karhdo.dev" alt="Forks Badge"/></a>
-    <a href="https://github.com/Karhdo/karhdo.dev/pulls"><img src="https://img.shields.io/github/issues-pr/Karhdo/karhdo.dev" alt="Pull Requests Badge"/></a>
-    <a href="https://github.com/Karhdo/karhdo.dev/issues"><img src="https://img.shields.io/github/issues/Karhdo/karhdo.dev" alt="Issues Badge"/></a>
-    <a href="https://github.com/Karhdo/karhdo.dev/graphs/contributors"><img alt="GitHub contributors" src="https://img.shields.io/github/contributors/Karhdo/karhdo.dev?color=2b9348"></a>
-    <a href="https://github.com/Karhdo/karhdo.dev/blob/master/LICENSE"><img src="https://img.shields.io/github/license/Karhdo/karhdo.dev?color=2b9348" alt="License Badge"/></a>
+    <a href="https://github.com/Karhdo/aio2025grid037.com/stargazers"><img src="https://img.shields.io/github/stars/Karhdo/aio2025grid037.com" alt="Stars Badge"/></a>
+    <a href="https://github.com/Karhdo/aio2025grid037.com/network/members"><img src="https://img.shields.io/github/forks/Karhdo/aio2025grid037.com" alt="Forks Badge"/></a>
+    <a href="https://github.com/Karhdo/aio2025grid037.com/pulls"><img src="https://img.shields.io/github/issues-pr/Karhdo/aio2025grid037.com" alt="Pull Requests Badge"/></a>
+    <a href="https://github.com/Karhdo/aio2025grid037.com/issues"><img src="https://img.shields.io/github/issues/Karhdo/aio2025grid037.com" alt="Issues Badge"/></a>
+    <a href="https://github.com/Karhdo/aio2025grid037.com/graphs/contributors"><img alt="GitHub contributors" src="https://img.shields.io/github/contributors/Karhdo/aio2025grid037.com?color=2b9348"></a>
+    <a href="https://github.com/Karhdo/aio2025grid037.com/blob/master/LICENSE"><img src="https://img.shields.io/github/license/Karhdo/aio2025grid037.com?color=2b9348" alt="License Badge"/></a>
 </div>
 <br>
 <p align="center"><i>Loved the project? Please visit our <a href="https://karhdo-blog.vercel.app">Website</a></i></p>
@@ -15,7 +15,7 @@
 
 ## Website
 
-<a href="https://karhdo-blog.vercel.app"><img src="https://raw.githubusercontent.com/Karhdo/karhdo.dev/main/public/static/images/projects/karhdo-blog.png" alt="Image Karhdo's Blog Website" /></a>
+<a href="https://karhdo-blog.vercel.app"><img src="https://raw.githubusercontent.com/Karhdo/aio2025grid037.com/main/public/static/images/projects/karhdo-blog.png" alt="Image Karhdo's Blog Website" /></a>
 
 ## Tech Stack
 

@@ -8,16 +8,16 @@ const BuildWith = () => (
     <span className="mr-1 text-gray-500 dark:text-gray-400">Build with</span>
 
     <div className="flex space-x-1.5">
-      <Link href="https://nextjs.org?ref=karhdo.dev">
+      <Link href="https://nextjs.org?ref=aio2025grid037.com">
         <BrandIcon type="NextJS" className="h-5 w-5" />
       </Link>
-      <Link href="https://tailwindcss.com?ref=karhdo.dev">
+      <Link href="https://tailwindcss.com?ref=aio2025grid037.com">
         <BrandIcon type="TailwindCSS" className="h-5 w-5" />
       </Link>
-      <Link href="https://www.typescriptlang.org?ref=karhdo.dev">
+      <Link href="https://www.typescriptlang.org?ref=aio2025grid037.com">
         <BrandIcon type="Typescript" className="h-5 w-5" />
       </Link>
-      <Link href="https://umami.is?ref=karhdo.dev" className="pl-px">
+      <Link href="https://umami.is?ref=aio2025grid037.com" className="pl-px">
         <BrandIcon type="Umami" className="h-5 w-5" />
       </Link>
     </div>

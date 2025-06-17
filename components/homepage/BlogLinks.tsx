@@ -8,13 +8,13 @@ const BlogLinks = () => {
         <Link href="/blog" className="hover:underline">
           <Twemoji emoji="memo" />
           <span data-umami-event="home-link-blog" className="ml-1.5">
-            My writings
+          Our research
           </span>
         </Link>
         <Link href="/projects" className="hover:underline">
           <Twemoji emoji="hammer-and-wrench" />
           <span data-umami-event="home-link-projects" className="ml-1.5">
-            What have I built?
+            What have we built?
           </span>
         </Link>
       </div>
@@ -22,13 +22,13 @@ const BlogLinks = () => {
         <Link href="/about" className="hover:underline">
           <Twemoji emoji="face-with-monocle" />
           <span data-umami-event="home-link-about" className="ml-1.5">
-            More about me and myself
+            More about team member
           </span>
         </Link>
         <Link href="/about" className="hover:underline">
           <Twemoji emoji="briefcase" />
           <span data-umami-event="home-link-resume" className="ml-1.5">
-            My career
+          Our career
           </span>
         </Link>
       </div>

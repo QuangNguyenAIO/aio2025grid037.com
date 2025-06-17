@@ -21,7 +21,7 @@ export default function AuthorLayout({ children, content }: Props) {
             About
           </h1>
           <p className="text-base text-gray-500 dark:text-gray-400 md:text-lg md:leading-7">
-            Further insights into who I am and the purpose of this blog.
+            Learn more about us and the purpose of this blog.
           </p>
         </div>
 
@@ -53,112 +53,72 @@ export default function AuthorLayout({ children, content }: Props) {
 
           <div className="prose max-w-none pb-8 dark:prose-dark xl:col-span-2">
             <h2>
-              Hello, folks! <Twemoji className="mx-2" emoji="waving-hand" /> I'm Trong Khanh (aka Karhdo)
+            Hello everyone! <Twemoji className="mx-2" emoji="waving-hand" /> 
             </h2>
             <p>
-              I have a passion for <strong>JavaScript/TypeScript</strong> and website development. I'm currently a
-              fullstack developer at <strong>YouNet Media</strong>, deeply engaged in the <strong>EcomHeat</strong>{' '}
-              project, which entails market share management, competitor research, and fostering e-commerce growth. I
-              work mainly with <strong>JavaScript</strong>, <strong>TypeScript</strong>, <strong>React</strong>,{' '}
-              <strong>NodeJS</strong>, <strong>NestJS</strong>, and <strong>NextJS</strong>.
-            </p>
-            <h2>Why have this blog?</h2>
-            <blockquote>
-              <p>My desire to practice my skills and share my acquired knowledge fuels my endeavors.</p>
-            </blockquote>
-            <p>
-              I founded this blog as a means to document and share the knowledge and practical wisdom I've acquired
-              during my journey as a software engineer.
+            We are <strong>aio2025grid037.com </strong> – an AI research group also known as <strong>GRID037</strong>
             </p>
             <p>
-              Writing and taking notes helps me solidify my understanding of new concepts and technologies. I hope my
-              blog can be a useful resource for fellow web developers.
+            We are individuals who share a passion for AI and technology. Each of us comes from different backgrounds, but we all have one common goal: <strong>to explore, learn, and grow in the field of artificial intelligence.</strong>
             </p>
+            <h2>What do we do??</h2>
             <p>
-              I would greatly appreciate your thoughts and comments on what I have written{' '}
-              <Twemoji emoji="clinking-beer-mugs" />.
+            We study together, share resources, solve problems ranging from basic to advanced, and build small projects to:
             </p>
-            <div className="flex items-center justify-between">
-              <h2>My Career</h2>
-
-              <Button as="a" href="/static/resume.pdf" target="_blank">
-                <span>Resume</span>
-                <Twemoji emoji="page-facing-up" />
-              </Button>
-            </div>
-            <CareerTimeline />
-            <h2>Tech stack</h2>
-            <p>
-              This blog is built with{' '}
-              <a target="_blank" href="https://nextjs.org/">
-                Next.js
-              </a>{' '}
-              and{' '}
-              <a target="_blank" href="https://tailwindcss.com/">
-                Tailwind CSS
-              </a>{' '}
-              using <strong>Tailwind Nextjs Starter Blog</strong>.
-            </p>
-
-            <p>
-              This blog site takes inspiration from leohuynh.dev. I appreciate{' '}
-              <a target="_blank" href="https://twitter.com/hta218_">
-                Leo Huynh
-              </a>{' '}
-              and{' '}
-              <a target="_blank" href="https://twitter.com/timlrxx">
-                Timothy Lin
-              </a>{' '}
-              for their contribution to this minimal, lightweight, and highly customizable blog starter.
-            </p>
-
-            <p>A few major over-engineering-changes from the original repo:</p>
-
             <ul>
               <li>
-                <Twemoji className="!mr-2" emoji="atom-symbol" /> Upgrading to <strong>React 18</strong>,{' '}
-                <strong>Next 14</strong>.
+              Deepen our understanding of fundamental AI concepts
               </li>
               <li>
-                <Twemoji className="!mr-2" emoji="party-popper" /> Adopting <strong>Typescript</strong>, committing with{' '}
-                <a target="_blank" href="https://www.conventionalcommits.org">
-                  Conventional Commits
-                </a>
+              Sharpen our skills in advanced topics like:
+                <ul>
+                  <li>
+                  Deep Learning
+                  </li>
+                  <li>
+                  Computer Vision
+                  </li>
+                  
+                </ul>
               </li>
               <li>
-                <Twemoji className="!mr-2" emoji="bar-chart" /> Monitoring site with{' '}
-                <a target="_blank" href="https://umami.is/">
-                  Umami
-                </a>{' '}
-                website analytics
-              </li>
-              <li>
-                <Twemoji className="!mr-2" emoji="eyes" /> Theming in dark mode with{' '}
-                <a target="_blank" href="https://github.com/folke/tokyonight.nvim">
-                  Tokyonight Neovim Theme
-                </a>{' '}
-                colors for better contrast.
-              </li>
-              <li>
-                <Twemoji className="!mr-2" emoji="man-technologist" /> My website refers to the design and code from the{' '}
-                <a target="_blank" href="https://github.com/hta218/leohuynh.dev">
-                  lehuynh.dev
-                </a>{' '}
-                repository and incorporates the tailwind-nextjs-starter-blog template, version 2.0.
-              </li>
-              <li>
-                <Twemoji className="!mr-2" emoji="inbox-tray" /> Bumping up <code>mdx-bundler</code>,{' '}
-                <code>rehype</code>/<code>remark</code> plugins and dependencies to the latest version
+              Practice critical thinking and teamwork skills
               </li>
             </ul>
-
+            
+            <h2>Why did we create this blog?</h2>
             <p>
-              See my{' '}
-              <a target="_blank" href="https://github.com/Karhdo/karhdo.dev">
-                repository
-              </a>{' '}
-              for this blog.
+            We started this blog as a space to share knowledge and document our learning journey. Writing things down helps us reinforce what we’ve learned, and it’s also a way to give back to the community.
+We believe that <strong>learning is a journey best taken together</strong>. Through this blog, we hope to:
             </p>
+            <ul>
+              <li>
+              Record and reflect on what we’ve learned
+              </li>
+              <li>
+              Share helpful articles, resources, and projects
+              </li>
+              <li>
+              Connect with others who share the same interests
+              </li>
+              <li>
+              Inspire and motivate those who are beginning or continuing their journey into AI
+              </li>
+            </ul>
+            
+
+            <h2>Our vision</h2>
+            <p>
+            Our long-term goal at GRID037 is to build a sustainable learning community where people 
+
+ <strong>grow together, support one another, and maintain a positive, open, and creative spirit.</strong> 
+            </p>
+            <p>
+            If you have feedback, questions, or want to collaborate with us, feel free to reach out or leave a comment. We truly appreciate your thoughts!
+            </p>
+            
+
+          
           </div>
         </div>
       </div>

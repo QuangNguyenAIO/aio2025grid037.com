@@ -19,13 +19,12 @@ const PopularTags = () => {
 
       <div className="popular-tags grid grid-cols-3 gap-4 py-6 xl:grid-cols-6">
         {map(popularTags, (popularTag) => {
-          const { slug, iconType, href, title } = popularTag;
+          const { slug, href, title } = popularTag;
 
           const className = `${slug} flex w-[128px] justify-center space-x-2 rounded-lg p-3`;
 
           return (
             <Link key={slug} href={href} className={className}>
-              <BrandIcon type={iconType} className="h-6 w-6" />
               <div className="my-auto text-white">{title}</div>
             </Link>
           );

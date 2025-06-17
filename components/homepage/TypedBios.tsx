@@ -23,39 +23,19 @@ const TypedBios = () => {
     <div>
       <ul id="bios" className="hidden">
         <li>
-          I'm aliased as <b className="font-medium">Karhdo</b> at work.
+          We are aliased as <b className="font-medium">GRID037</b> at work.
         </li>
         <li>
-          I live in <b className="font-medium">Ho Chi Minh, Viet Nam</b>.
+          We live in <b className="font-medium">Ha Noi, Viet Nam</b>.
         </li>
         <li>
-          I was born in the beautiful <b className="font-medium">Quang Ngai</b> city.
+          We believe that we can do anything <b className="font-medium">together</b> city.
         </li>
         <li>
-          My first programming language I learned was <b className="font-medium">C++</b>.
-        </li>
-        <li>I love web development.</li>
-        <li>
-          I'm focusing on building <b className="font-medium">Social Analytics Software</b>.
+          We care and share our knowledge about AI with <b className="font-medium">everyone.</b>.
         </li>
         <li>
-          I work mostly with <b className="font-medium">Javascript/Typescript</b> technologies.
-        </li>
-        <li>
-          I'm a dog-person <Twemoji emoji="dog" />.
-        </li>
-        <li>
-          I'm a sporty-guy. I love
-          <span className="ml-1">
-            <Twemoji emoji="tennis" />, <Twemoji emoji="soccer-ball" />
-          </span>
-          .
-        </li>
-        <li>
-          I love listening <Twemoji emoji="musical-keyboard" /> and rap music.
-        </li>
-        <li>
-          I love playing video game <Twemoji emoji="video-game" />, LoL is my favorite one.
+          We want to focus on the field of  <b className="font-medium">Computer Vision.</b>.
         </li>
       </ul>
       <span ref={el} className="text-neutral-900 dark:text-neutral-200" />
