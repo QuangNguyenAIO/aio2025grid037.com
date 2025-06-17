@@ -15,7 +15,7 @@ export default async function Projects() {
     })
   );
 
-  const description = "The projects and things we built together.";
+  const description = 'The projects and things we built together.';
 
   const workProjects = projectsData.filter(({ type }) => type === 'work');
   const sideProjects = projectsData.filter(({ type }) => type === 'self');

@@ -8,7 +8,7 @@ const BlogLinks = () => {
         <Link href="/blog" className="hover:underline">
           <Twemoji emoji="memo" />
           <span data-umami-event="home-link-blog" className="ml-1.5">
-          Our research
+            Our research
           </span>
         </Link>
         <Link href="/projects" className="hover:underline">
@@ -28,7 +28,7 @@ const BlogLinks = () => {
         <Link href="/about" className="hover:underline">
           <Twemoji emoji="briefcase" />
           <span data-umami-event="home-link-resume" className="ml-1.5">
-          Our career
+            Our career
           </span>
         </Link>
       </div>

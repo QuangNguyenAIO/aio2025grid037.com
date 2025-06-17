@@ -53,72 +53,55 @@ export default function AuthorLayout({ children, content }: Props) {
 
           <div className="prose max-w-none pb-8 dark:prose-dark xl:col-span-2">
             <h2>
-            Hello everyone! <Twemoji className="mx-2" emoji="waving-hand" /> 
+              Hello everyone! <Twemoji className="mx-2" emoji="waving-hand" />
             </h2>
             <p>
-            We are <strong>aio2025grid037.com </strong> – an AI research group also known as <strong>GRID037</strong>
+              We are <strong>aio2025grid037.com </strong> – an AI research group also known as <strong>GRID037</strong>
             </p>
             <p>
-            We are individuals who share a passion for AI and technology. Each of us comes from different backgrounds, but we all have one common goal: <strong>to explore, learn, and grow in the field of artificial intelligence.</strong>
+              We are individuals who share a passion for AI and technology. Each of us comes from different backgrounds,
+              but we all have one common goal:{' '}
+              <strong>to explore, learn, and grow in the field of artificial intelligence.</strong>
             </p>
             <h2>What do we do??</h2>
             <p>
-            We study together, share resources, solve problems ranging from basic to advanced, and build small projects to:
+              We study together, share resources, solve problems ranging from basic to advanced, and build small
+              projects to:
             </p>
             <ul>
+              <li>Deepen our understanding of fundamental AI concepts</li>
               <li>
-              Deepen our understanding of fundamental AI concepts
-              </li>
-              <li>
-              Sharpen our skills in advanced topics like:
+                Sharpen our skills in advanced topics like:
                 <ul>
-                  <li>
-                  Deep Learning
-                  </li>
-                  <li>
-                  Computer Vision
-                  </li>
-                  
+                  <li>Deep Learning</li>
+                  <li>Computer Vision</li>
                 </ul>
               </li>
-              <li>
-              Practice critical thinking and teamwork skills
-              </li>
+              <li>Practice critical thinking and teamwork skills</li>
             </ul>
-            
+
             <h2>Why did we create this blog?</h2>
             <p>
-            We started this blog as a space to share knowledge and document our learning journey. Writing things down helps us reinforce what we’ve learned, and it’s also a way to give back to the community.
-We believe that <strong>learning is a journey best taken together</strong>. Through this blog, we hope to:
+              We started this blog as a space to share knowledge and document our learning journey. Writing things down
+              helps us reinforce what we’ve learned, and it’s also a way to give back to the community. We believe that{' '}
+              <strong>learning is a journey best taken together</strong>. Through this blog, we hope to:
             </p>
             <ul>
-              <li>
-              Record and reflect on what we’ve learned
-              </li>
-              <li>
-              Share helpful articles, resources, and projects
-              </li>
-              <li>
-              Connect with others who share the same interests
-              </li>
-              <li>
-              Inspire and motivate those who are beginning or continuing their journey into AI
-              </li>
+              <li>Record and reflect on what we’ve learned</li>
+              <li>Share helpful articles, resources, and projects</li>
+              <li>Connect with others who share the same interests</li>
+              <li>Inspire and motivate those who are beginning or continuing their journey into AI</li>
             </ul>
-            
 
             <h2>Our vision</h2>
             <p>
-            Our long-term goal at GRID037 is to build a sustainable learning community where people 
-
- <strong>grow together, support one another, and maintain a positive, open, and creative spirit.</strong> 
+              Our long-term goal at GRID037 is to build a sustainable learning community where people
+              <strong>grow together, support one another, and maintain a positive, open, and creative spirit.</strong>
             </p>
             <p>
-            If you have feedback, questions, or want to collaborate with us, feel free to reach out or leave a comment. We truly appreciate your thoughts!
+              If you have feedback, questions, or want to collaborate with us, feel free to reach out or leave a
+              comment. We truly appreciate your thoughts!
             </p>
-            
-
-          
           </div>
         </div>
       </div>

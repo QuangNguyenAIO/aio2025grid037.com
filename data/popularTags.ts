@@ -21,7 +21,7 @@ const popularTags: PopularTag[] = [
     href: '/tags/Deep Learning',
     slug: 'DeepLearning',
     title: 'Deep Learning',
-  }
+  },
 ];
 
 export default popularTags;
