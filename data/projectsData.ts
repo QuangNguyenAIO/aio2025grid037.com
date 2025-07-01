@@ -8,6 +8,13 @@ const projectsData: Project[] = [
     repo: 'Karhdo/aio2025grid037.com',
     builtWith: ['Next.js', 'Tailwind', 'Typescript', 'Prisma', 'Umami'],
   },
+  {
+    type: 'work',
+    title: 'RAG - chatbot',
+    imgSrc: '/static/images/projects/rag-chatbot.png',
+    repo: '',
+    builtWith: ['torch', 'python', 'transformers', 'langchain', 'streamlit'],
+  },
 ];
 
 export default projectsData;
