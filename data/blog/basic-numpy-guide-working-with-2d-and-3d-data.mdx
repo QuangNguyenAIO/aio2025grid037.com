@@ -1,71 +1,372 @@
 ---
 title: Basic NumPy Guide Working with 2D and 3D Data
 date: 2025-6-30
-tags: ['python', 'numpy', 'machine learning', 'data science', 'AI', ]
+tags: ['python', 'numpy', 'machine learning', 'AI', ]
 summary: Bài viết này cung cấp hướng dẫn cơ bản về NumPy, tập trung vào cách biểu diễn và xử lý dữ liệu hai chiều (2D) và ba chiều (3D). Bạn sẽ tìm hiểu cách tạo, truy cập và thay đổi hình dạng mảng NumPy, cũng như cách sử dụng chúng để thao tác dữ liệu nhiều chiều một cách hiệu quả trong Python.
+images: (/static/images/blogs/blender-anya.png)
 ---
 
 import Twemoji from './components/ui/Twemoji';
 
-## Bối cảnh & Động cơ học (Tạo động lực đọc bài)
-Tại sao cần học NumPy?
+## Tại sao cần học NumPy?
 
-Các tình huống thường gặp (xử lý dữ liệu ma trận, ảnh, AI, học máy,...).
+Mặc dù Python với kiểu dữ liệu `list` có thể xử lý nhiều tác vụ khác nhau, nhưng khi nói đến tính toán khoa học và phân tích dữ liệu, đặc biệt là với các tập dữ liệu lớn, `list` bộc lộ nhiều hạn chế. Vì thế **NumPy** (Numerical Python) được sinh ra để giải quyết nhiều vấn đề mà Python cơ bản không làm được.
 
-Nêu ra một ví dụ thực tế (ví dụ: "Muốn xử lý ảnh hoặc mô hình AI thì cần biết cách xử lý mảng hiệu quả").
+### Hiệu suất vượt trội cho tính toán
 
-Gợi ý: Có thể đề cập nhẹ đến AI Applications ở đây để gợi sự tò mò, ví dụ:
-"NumPy là nền tảng cho nhiều ứng dụng AI như xử lý ảnh, học sâu,... mà mình sẽ đề cập thêm trong phần ứng dụng."
+Python `list` là một cấu trúc dữ liệu rất linh hoạt, có thể chứa nhiều kiểu dữ liệu khác nhau (số, chuỗi, đối tượng khác). Tuy nhiên, chính sự linh hoạt này lại khiến nó không hiệu quả cho các phép toán số học trên diện rộng.
 
-## Giới thiệu về NumPy (Đặt nền móng)
+  * **List**: Các phép toán trên `list` thường được thực hiện thông qua các vòng lặp `for`. Khi làm việc với các vector hay ma trận lớn, việc lặp qua từng phần tử để tính toán trở nên rất chậm chạp.
+  * **NumPy Array**: NumPy cung cấp cấu trúc dữ liệu `ndarray` (n-dimensional array). Các phần tử trong một array của NumPy phải có cùng kiểu dữ liệu. Điều này cho phép NumPy thực thi các phép toán được tối ưu hóa ở tầng C/Fortran, nhanh hơn gấp nhiều lần so với Python thuần túy.
+
+Ví dụ, hãy xem xét phép nhân. Nếu bạn muốn nhân mỗi phần tử của một danh sách số với 2:
+
+  * **Với `list`**, bạn phải dùng vòng lặp hoặc list comprehension:
+
+    ```python
+    my_list = [1, 2, 3, 4]
+    doubled_list = [item * 2 for item in my_list]
+    # Kết quả: [2, 4, 6, 8]
+    ```
+
+    Nếu bạn thực hiện `my_list * 2`, Python sẽ chỉ tạo ra một bản sao của `list` đó: `[1, 2, 3, 4, 1, 2, 3, 4]`.
+
+  * **Với NumPy `array`**, bạn có thể thực hiện phép nhân trực tiếp (vectorized operation):
+
+    ```python
+    import numpy as np
+    my_array = np.array([1, 2, 3, 4])
+    doubled_array = my_array * 2
+    # Kết quả: array([2, 4, 6, 8])
+    ```
+
+    Phép toán này không chỉ ngắn gọn hơn mà còn nhanh hơn rất nhiều khi xử lý hàng triệu phần tử.
+
+### "Trạm trung chuyển" cho hệ sinh thái khoa học dữ liệu
+
+NumPy là nền tảng cốt lõi cho gần như toàn bộ hệ sinh thái khoa học dữ liệu và học máy trong Python. `ndarray` của NumPy được sử dụng làm kiểu dữ liệu trung gian tiêu chuẩn để trao đổi dữ liệu giữa các thư viện khác nhau như:
+
+  * **Pandas**: Thư viện phân tích dữ liệu mạnh mẽ này được xây dựng trên nền tảng NumPy.
+  * **Matplotlib/Seaborn**: Các thư viện trực quan hóa dữ liệu này chấp nhận `ndarray` của NumPy làm đầu vào để vẽ biểu đồ.
+  * **Scikit-learn**: Thư viện học máy phổ biến nhất sử dụng NumPy `array` cho dữ liệu đầu vào và các phép tính toán thuật toán.
+  * **TensorFlow & PyTorch**: Các framework học sâu hàng đầu này tích hợp chặt chẽ với NumPy, cho phép chuyển đổi dễ dàng giữa các `tensor` của chúng và `ndarray` của NumPy.
+
+Việc thành thạo NumPy giúp bạn làm việc liền mạch và hiệu quả hơn với tất cả các công cụ này.
+
+### Biểu diễn Tensor và dữ liệu đa chiều hiệu quả
+
+Trong học máy và các lĩnh vực khoa học khác, chúng ta thường xuyên làm việc với dữ liệu đa chiều, hay còn gọi là **tensor**. Một vector là tensor 1 chiều, một ma trận là tensor 2 chiều, và cứ thế tiếp tục.
+
+  * **Python cơ bản**: Việc biểu diễn một ma trận hoặc một tensor 3 chiều bằng các `list` lồng nhau (`list` of `list` of `list`) trở nên rất cồng kềnh và khó quản lý. Việc truy cập các phần tử và thực hiện các phép toán trên các cấu trúc này vừa phức tạp vừa không hiệu quả.
+  * **NumPy**: NumPy được thiết kế để xử lý dữ liệu đa chiều một cách tự nhiên và dễ dàng. Bạn có thể tạo ra các mảng 2D, 3D, hoặc nD và thực hiện các phép toán phức tạp (như nhân ma trận, tính toán thống kê theo các trục) một cách cực kỳ đơn giản và hiệu quả.
+
+Nói cách khác, NumPy không chỉ bao quát được khả năng của `list` mà còn mở rộng ra một không gian tính toán số học và dữ liệu đa chiều mà Python cơ bản không thể đáp ứng tốt.
+
+### Hệ thống hàm toán học và thống kê phong phú
+NumPy không chỉ cung cấp cấu trúc dữ liệu ndarray, nó còn đi kèm với một thư viện khổng lồ các hàm toán học được tối ưu hóa.
+
+Thống kê cơ bản: `np.mean()`, `np.median()`, `np.std()` (độ lệch chuẩn), `np.var()` (phương sai), `np.sum()`, `np.min()`, `np.max()`. Các hàm này có thể tính toán trên toàn bộ mảng hoặc theo một trục (axis) cụ thể, cực kỳ hữu ích khi bạn muốn tính giá trị trung bình của từng cột trong một ma trận.
+
+Đại số tuyến tính: Module `np.linalg` cung cấp các hàm thiết yếu như `np.dot()` (tích vô hướng/nhân ma trận), `np.linalg.inv()` (nghịch đảo ma trận), `np.linalg.eig()` (trị riêng và vector riêng), `np.linalg.solve()` (giải hệ phương trình tuyến tính). Đây là nền tảng cho rất nhiều thuật toán học máy.
+
+Tạo dữ liệu: Các hàm như `np.arange()`, `np.linspace()`, `np.random.rand()`, `np.random.randn()` giúp tạo ra các mảng dữ liệu mẫu để thử nghiệm thuật toán một cách nhanh chóng.
+## Giới thiệu về NumPy
 NumPy là gì?
+![Numpy](/static/images/blogs/anya.png)
+[NumPy](https://numpy.org/)
+, viết tắt của Numerical Python, là một thư viện mã nguồn mở và là nền tảng cơ bản cho tính toán khoa học trong Python. Nó cung cấp một đối tượng mảng đa chiều (n-dimensional array) mạnh mẽ có tên là ndarray, cùng với một tập hợp lớn các hàm toán học phức tạp để xử lý các mảng này một cách hiệu quả. Mục tiêu chính của NumPy là cung cấp một công cụ cho phép thực hiện các phép toán số học với tốc độ cao, tương đương với các ngôn ngữ biên dịch như C hay Fortran, ngay trong môi trường linh hoạt của Python.
 
-Lịch sử và vai trò trong hệ sinh thái Python khoa học.
+## Numpy cơ bản
 
-So sánh với list thông thường (tại sao cần NumPy?)
+NumPy là một thư viện mạnh mẽ trong Python, cung cấp các công cụ cần thiết để làm việc với dữ liệu số học và đa chiều. Trong phần này, chúng ta sẽ tìm hiểu các khái niệm cơ bản của NumPy, từ cấu trúc dữ liệu cốt lõi đến các thao tác thường dùng.
 
-## Các kiến thức cốt lõi (Phần chính)
-Khái niệm ndarray, shape, dtype
+### Khái niệm ndarray, shape, dtype
 
-Tạo mảng: np.array, np.zeros, np.ones, np.arange, np.linspace
+- **ndarray**: Đây là đối tượng mảng đa chiều (n-dimensional array) của NumPy, là nền tảng cho hầu hết các thao tác trong thư viện này. Một `ndarray` có thể biểu diễn vector (1D), ma trận (2D), hoặc các mảng nhiều chiều hơn (3D, 4D,...). Không giống như `list` của Python, `ndarray` yêu cầu tất cả các phần tử có cùng kiểu dữ liệu, giúp tối ưu hóa hiệu suất tính toán.
+- **shape**: Thuộc tính `shape` của một `ndarray` cho biết kích thước của mảng theo từng chiều. Ví dụ, một mảng 2D có `shape` là `(3, 4)` nghĩa là mảng có 3 hàng và 4 cột.
+- **dtype**: Thuộc tính `dtype` xác định kiểu dữ liệu của các phần tử trong mảng, ví dụ: `int32`, `float64`, `complex128`. NumPy hỗ trợ nhiều kiểu dữ liệu với độ chính xác khác nhau, giúp tiết kiệm bộ nhớ và tăng tốc độ tính toán.
 
-Truy cập, slicing, broadcasting
+### Khái niệm tensor
+- **tensor**: Tensor là một khái niệm bên toán học và vật lý, tensor là một đối tượng toán học
+- Ở đây, để dễ hiểu hơn tensor là một cách gọi chung cho các mảng đa chiều. Một số vô hướng (Scalar) có thể coi là tensor bậc 0, Một vector là tensor 1 chiều, ma trận là tensor 2 chiều, và các mảng 3 chiều trở lên cũng được gọi là tensor.
+![mô tả tensor dễ hiểu](/static/images/blogs/tensor1.png)
+- Nhiều khi chúng ta học đến thời điểm hiện tại thì tự nghĩ: à! hóa ra từ xưa đến giờ hồi còn học từ nhỏ đến đại học hóa ra mình đang học về tensor chẳng qua chỉ là phiên bản nhỏ hơn 
+![mô tả tensor dễ hiểu](/static/images/blogs/tensor.png)
 
-Các phép toán trên mảng
 
-Xử lý dữ liệu 2D/3D: Ma trận, reshape, transpose
+### Tạo mảng: np.array, np.zeros, np.ones, np.arange, np.linspace
 
-Ví dụ thực tế với code
+NumPy cung cấp nhiều cách để tạo mảng với các giá trị khởi tạo khác nhau:
 
-Gợi ý chèn phần “AI Applications” tại cuối phần này:
-→ Khi người đọc đã nắm cơ bản, bạn chèn mục phụ như:
+- **np.array()**: Tạo mảng từ dữ liệu có sẵn, ví dụ từ một `list` hoặc `tuple`.
+- **np.zeros()**: Tạo mảng chứa toàn số 0 với kích thước được chỉ định.
+- **np.ones()**: Tạo mảng chứa toàn số 1 với kích thước được chỉ định.
+- **np.arange()**: Tạo mảng với các giá trị tăng dần trong một khoảng, tương tự `range()` của Python.
+- **np.linspace()**: Tạo mảng với các giá trị cách đều nhau trong một khoảng.
 
-Ứng dụng trong AI và Machine Learning
-Dùng NumPy xử lý dữ liệu ảnh (2D - grayscale, 3D - RGB)
+Ví dụ:
 
-Dùng trong quá trình huấn luyện model (tính toán vector, ma trận trọng số,...)
+```python
+import numpy as np
 
-Nêu ngắn 1–2 đoạn dẫn chứng, có thể kèm hình ảnh nếu cần.
+# Tạo mảng từ list
+arr1 = np.array([1, 2, 3, 4])
+print("np.array:", arr1)
+
+# Tạo mảng toàn số 0
+arr2 = np.zeros((2, 3))
+print("np.zeros:\n", arr2)
+
+# Tạo mảng toàn số 1
+arr3 = np.ones((2, 2))
+print("np.ones:\n", arr3)
+
+# Tạo mảng với khoảng giá trị tăng dần
+arr4 = np.arange(0, 10, 2)  # Từ 0 đến 10, bước nhảy 2
+print("np.arange:", arr4)
+
+# Tạo mảng với các giá trị cách đều
+arr5 = np.linspace(0, 1, 5)  # 5 giá trị từ 0 đến 1
+print("np.linspace:", arr5)
+```
+
+### Truy cập, slicing, broadcasting
+
+- **Truy cập phần tử**: Bạn có thể truy cập các phần tử trong mảng bằng chỉ số (index), tương tự như `list`. Với mảng đa chiều, chỉ số được chỉ định cho từng chiều.
+- **Slicing**: NumPy hỗ trợ cắt mảng (slicing) để lấy một phần của mảng, sử dụng cú pháp `[start:end:step]`.
+- **Broadcasting**: Đây là một tính năng mạnh mẽ của NumPy, cho phép thực hiện các phép toán trên toàn bộ mảng mà không cần vòng lặp. Broadcasting tự động mở rộng kích thước của mảng nhỏ hơn để khớp với mảng lớn hơn trong phép toán.
+
+Ví dụ:
+
+```python
+import numpy as np
+
+# Tạo mảng 2D
+arr = np.array([[1, 2, 3], [4, 5, 6]])
+
+# Truy cập phần tử
+print("Phần tử tại (1, 2):", arr[1, 2])  # Kết quả: 6
+
+# Slicing
+print("Cắt hàng đầu tiên:", arr[0, :])  # Kết quả: [1, 2, 3]
+print("Cắt cột thứ hai:", arr[:, 1])    # Kết quả: [2, 5]
+
+# Broadcasting
+arr_broadcast = arr + 10  # Cộng 10 vào từng phần tử
+print("Broadcasting:\n", arr_broadcast)
+```
+
+### Các phép toán trên mảng
+
+NumPy hỗ trợ nhiều phép toán số học và toán học trên mảng, được thực hiện theo từng phần tử (element-wise) hoặc trên toàn bộ mảng:
+
+- Các phép toán cơ bản: `+`, `-`, `*`, `/`, `**` (lũy thừa).
+- Các hàm toán học: `np.sin()`, `np.cos()`, `np.exp()`, `np.log()`, v.v.
+- Các phép toán thống kê: `np.sum()`, `np.mean()`, `np.max()`, `np.min()`, v.v.
+
+Ví dụ:
+
+```python
+import numpy as np
+
+arr = np.array([1, 2, 3, 4])
+
+# Phép toán cơ bản
+print("Cộng 5:", arr + 5)
+print("Nhân 2:", arr * 2)
+
+# Hàm toán học
+print("Sin:", np.sin(arr))
+print("Log:", np.log(arr))
+
+# Thống kê
+print("Tổng:", np.sum(arr))
+print("Trung bình:", np.mean(arr))
+```
+
+### Xử lý dữ liệu 2D/3D: Ma trận, reshape, transpose
+
+NumPy rất mạnh mẽ trong việc xử lý dữ liệu đa chiều, đặc biệt là ma trận (2D) và tensor (3D trở lên):
+
+- **Ma trận**: Bạn có thể thực hiện các phép toán ma trận như nhân ma trận (`np.dot()`), tính định thức, nghịch đảo, v.v.
+- **reshape**: Thay đổi hình dạng của mảng mà không thay đổi dữ liệu bên trong.
+- **transpose**: Chuyển vị ma trận (hoán đổi hàng và cột).
+
+Ví dụ:
+
+```python
+import numpy as np
+
+# Tạo mảng 2D (ma trận)
+matrix = np.array([[1, 2], [3, 4]])
+print("Ma trận ban đầu:\n", matrix)
+
+# Nhân ma trận
+matrix2 = np.array([[5, 6], [7, 8]])
+product = np.dot(matrix, matrix2)
+print("Nhân ma trận:\n", product)
+
+# Reshape
+arr = np.array([1, 2, 3, 4, 5, 6])
+reshaped = arr.reshape(2, 3)
+print("Reshape thành 2x3:\n", reshaped)
+
+# Transpose
+transposed = matrix.T
+print("Chuyển vị:\n", transposed)
+```
+
+### Ví dụ thực tế với code
+
+Hãy xem một ví dụ thực tế về việc sử dụng NumPy để xử lý dữ liệu ảnh đơn giản. Giả sử chúng ta có một ảnh grayscale được biểu diễn dưới dạng ma trận 2D, và chúng ta muốn tăng độ sáng của ảnh bằng cách cộng thêm một giá trị vào tất cả các pixel.
+
+```python
+import numpy as np
+
+# Giả lập một ảnh grayscale 5x5 (giá trị pixel từ 0 đến 255)
+image = np.array([
+    [100, 120, 140, 160, 180],
+    [110, 130, 150, 170, 190],
+    [120, 140, 160, 180, 200],
+    [130, 150, 170, 190, 210],
+    [140, 160, 180, 200, 220]
+])
+
+# Tăng độ sáng bằng cách cộng thêm 50 vào tất cả các pixel
+brightened_image = image + 50
+
+# Đảm bảo giá trị pixel không vượt quá 255
+brightened_image = np.clip(brightened_image, 0, 255)
+
+print("Ảnh gốc:\n", image)
+print("Ảnh sau khi tăng độ sáng:\n", brightened_image)
+```
+
+Ví dụ này minh họa cách NumPy có thể xử lý dữ liệu 2D một cách hiệu quả, áp dụng các phép toán trên toàn bộ mảng mà không cần vòng lặp. Điều này rất hữu ích trong xử lý ảnh, một lĩnh vực quan trọng của AI và Machine Learning.
+
+#### Tập trung vào dữ liệu 2D: Xử lý ma trận và ứng dụng thực tế
+
+Dữ liệu 2D, thường được biểu diễn dưới dạng ma trận, là một trong những cấu trúc quan trọng nhất trong tính toán khoa học và học máy. Ma trận có thể biểu diễn nhiều loại dữ liệu như bảng số liệu, ảnh grayscale, hoặc các ma trận trọng số trong mạng nơ-ron. NumPy cung cấp các công cụ mạnh mẽ để thao tác với dữ liệu 2D một cách dễ dàng.
+
+**Ví dụ 1: Tính toán điểm trung bình của học sinh**
+
+Giả sử bạn có một bảng điểm của 4 học sinh trong 3 môn học (Toán, Lý, Hóa) được biểu diễn dưới dạng ma trận 2D. Bạn muốn tính điểm trung bình của từng học sinh và từng môn học.
+
+```python
+import numpy as np
+
+# Ma trận điểm của 4 học sinh trong 3 môn học
+scores = np.array([
+    [8.5, 7.0, 9.0],  # Học sinh 1
+    [6.5, 8.0, 7.5],  # Học sinh 2
+    [9.0, 8.5, 8.0],  # Học sinh 3
+    [7.0, 6.5, 7.5]   # Học sinh 4
+])
+
+# Tính điểm trung bình của từng học sinh (theo hàng, axis=1)
+avg_student = np.mean(scores, axis=1)
+print("Điểm trung bình của từng học sinh:", avg_student)
+
+# Tính điểm trung bình của từng môn học (theo cột, axis=0)
+avg_subject = np.mean(scores, axis=0)
+print("Điểm trung bình của từng môn học:", avg_subject)
+```
+
+Kết quả sẽ cho bạn điểm trung bình của từng học sinh và từng môn học mà không cần viết vòng lặp phức tạp. Thuộc tính `axis` trong các hàm như `np.mean()` cho phép bạn chỉ định chiều tính toán, rất hữu ích khi làm việc với dữ liệu 2D.
+
+**Ví dụ 2: Biến đổi ảnh grayscale**
+
+Ngoài việc tăng độ sáng như ví dụ trước, bạn có thể thực hiện các biến đổi khác trên ảnh grayscale, chẳng hạn như cắt một phần của ảnh hoặc áp dụng ngưỡng (threshold) để tạo ảnh nhị phân.
+
+```python
+import numpy as np
+
+# Giả lập một ảnh grayscale 6x6
+image = np.array([
+    [100, 120, 140, 160, 180, 200],
+    [110, 130, 150, 170, 190, 210],
+    [120, 140, 160, 180, 200, 220],
+    [130, 150, 170, 190, 210, 230],
+    [140, 160, 180, 200, 220, 240],
+    [150, 170, 190, 210, 230, 250]
+])
+
+# Cắt một phần ảnh (chỉ lấy vùng 3x3 ở giữa)
+cropped_image = image[1:4, 1:4]
+print("Phần ảnh được cắt:\n", cropped_image)
+
+# Áp dụng ngưỡng để tạo ảnh nhị phân (pixel > 160 thành 255, còn lại thành 0)
+binary_image = np.where(image > 160, 255, 0)
+print("Ảnh nhị phân:\n", binary_image)
+```
+
+Ví dụ này cho thấy cách NumPy có thể dễ dàng thao tác trên dữ liệu 2D để thực hiện các tác vụ như cắt ảnh hoặc biến đổi giá trị pixel, rất phổ biến trong xử lý ảnh.
+
+#### Tập trung vào dữ liệu 3D: Tensor và ứng dụng thực tế
+
+Dữ liệu 3D thường được sử dụng để biểu diễn các cấu trúc phức tạp hơn, chẳng hạn như ảnh màu (RGB), video (các khung hình theo thời gian), hoặc dữ liệu không gian trong mô phỏng. Trong NumPy, dữ liệu 3D được biểu diễn dưới dạng tensor 3 chiều, với các trục tương ứng với chiều cao, chiều rộng và số kênh (channels).
+
+**Ví dụ 1: Xử lý ảnh màu RGB**
+
+Một ảnh màu RGB được biểu diễn dưới dạng tensor 3D, trong đó mỗi pixel có 3 giá trị tương ứng với các kênh màu Đỏ (Red), Xanh lá (Green), và Xanh dương (Blue). Giả sử chúng ta có một ảnh RGB nhỏ 3x3 pixel, và chúng ta muốn tăng giá trị của kênh Đỏ lên 50.
+
+```python
+import numpy as np
+
+# Giả lập một ảnh RGB 3x3 (3 chiều: height, width, channels)
+image_rgb = np.array([
+    [[255, 0, 0], [255, 255, 0], [0, 255, 0]],
+    [[255, 0, 255], [128, 128, 128], [0, 0, 255]],
+    [[0, 0, 0], [255, 255, 255], [100, 150, 200]]
+])
+
+# Tăng giá trị kênh Đỏ (Red) lên 50
+image_rgb[:, :, 0] = image_rgb[:, :, 0] + 50
+
+# Đảm bảo giá trị không vượt quá 255
+image_rgb = np.clip(image_rgb, 0, 255)
+
+print("Ảnh RGB sau khi tăng kênh Đỏ:\n", image_rgb)
+```
+
+Ví dụ này minh họa cách NumPy có thể thao tác trên một chiều cụ thể của tensor 3D (ở đây là kênh màu Đỏ) mà không ảnh hưởng đến các chiều khác. Điều này rất hữu ích trong xử lý ảnh màu.
+
+**Ví dụ 2: Mô phỏng dữ liệu nhiệt độ 3D**
+
+Giả sử bạn đang mô phỏng dữ liệu nhiệt độ trong một không gian 3D (ví dụ: một khối lập phương được chia thành các ô nhỏ). Bạn có thể sử dụng tensor 3D để biểu diễn dữ liệu này và tính toán các giá trị trung bình theo một chiều cụ thể.
+
+```python
+import numpy as np
+
+# Giả lập dữ liệu nhiệt độ trong không gian 3x3x3 (độ C)
+temperature = np.array([
+    [[20, 21, 22], [23, 24, 25], [26, 27, 28]],
+    [[30, 31, 32], [33, 34, 35], [36, 37, 38]],
+    [[40, 41, 42], [43, 44, 45], [46, 47, 48]]
+])
+
+# Tính nhiệt độ trung bình theo chiều sâu (axis=0)
+avg_depth = np.mean(temperature, axis=0)
+print("Nhiệt độ trung bình theo chiều sâu:\n", avg_depth)
+
+# Tính nhiệt độ trung bình theo hàng (axis=1)
+avg_row = np.mean(temperature, axis=1)
+print("Nhiệt độ trung bình theo hàng:\n", avg_row)
+```
+
+Ví dụ này cho thấy cách NumPy có thể xử lý dữ liệu 3D để tính toán các giá trị thống kê theo các chiều khác nhau, rất hữu ích trong các ứng dụng như mô phỏng vật lý hoặc phân tích dữ liệu không gian.
+
+
+
+### Ứng dụng trong AI và Machine Learning
+NumPy rất quan trọng trong AI và Machine Learning, đặc biệt khi xử lý dữ liệu ảnh (2D cho ảnh grayscale, 3D cho ảnh RGB) và tính toán ma trận trọng số trong huấn luyện mô hình. Nó cho phép thao tác dễ dàng trên mảng đa chiều để biến đổi ảnh như thay đổi độ sáng hay áp dụng bộ lọc.
 
 ## Tóm tắt kiến thức (Summary)
-Tóm lược các kiến thức chính
+- NumPy cung cấp `ndarray` để xử lý dữ liệu đa chiều hiệu quả, cùng các hàm toán học và thống kê mạnh mẽ.
+- Thành thạo NumPy giúp bạn làm việc với dữ liệu 2D/3D dễ dàng, rất quan trọng trong AI và Data Science.
 
-Gợi lại tầm quan trọng của NumPy
+## Chúc mừng bạn đã đọc xong bài viết!
+![Chúc mừng bạn đã đọc xong!](/static/images/blogs/blender-anya.png)
+“Trong các bài tới, mình sẽ sử dụng NumPy trong pandas, bài toán dự đoán,....”
 
-Nhấn mạnh việc thành thạo NumPy sẽ dễ dàng học tiếp AI, Data Science, v.v.
 
-## Mở rộng – Hướng đi tiếp theo (Gắn kết series)
-“Trong các bài tới, mình sẽ sử dụng NumPy trong…”
-
-Gợi ý các chủ đề kế tiếp:
-Dự đoán bằng học máy đơn giản với NumPy..
-
-## Tóm lại:
-Vị trí nên để AI Applications	
-	            
-| Tên                       | Gợi ý                                                                    |
-|---------------------------|--------------------------------------------------------------------------|
-| Cuối phần Kiến thức       | ✅ Tốt nhất — người đọc đã sẵn sàng hiểu và thấy được ứng dụng.          |
-| Ngay đầu bài (1 câu)      | ➕ Gợi sự tò mò, nhưng chỉ nhắc ngắn để không làm loãng trọng tâm.       |
-| Trong từng ví dụ nhỏ      | ❗️Khó kiểm soát — chỉ nên nếu có nhiều không gian và viết dạng tutorial. |
-| Làm phần riêng cuối bài)  | ➖ Không khuyến khích vì dễ bị rời rạc, không kết nối với nội dung học.  |
