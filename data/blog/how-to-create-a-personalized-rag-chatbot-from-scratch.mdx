@@ -1,0 +1,80 @@
+---
+title: How to Create a Personalized RAG Chatbot from Scratch
+date: 2025-7-4
+tags: ['python', 'AI', 'chatbot', 'RAG', 'transformers', 'ChromaDB', 'streamlit', 'langchain', 'machine learning', 'deeplearning' ]
+summary: Bài viết này cung cấp hướng dẫn chi tiết cách tạo và triển khai một chatbot RAG cá nhân hóa bằng Python, sử dụng các thư viện như Transformers, LangChain và giao diện trực quan với Streamlit.
+---
+
+import Twemoji from './components/ui/Twemoji';
+
+## Tại sao lại là RAG?
+
+- Giới thiệu khái niệm **Retrieval-Augmented Generation (RAG)**.
+  - Vấn đề của LLMs khi không có thông tin thời gian thực hoặc dữ liệu cụ thể.
+  - Giải pháp RAG: kết hợp khả năng sinh văn bản của LLM với hệ thống truy xuất dữ liệu từ nguồn bên ngoài.
+- Ứng dụng thực tế của RAG: chatbot chăm sóc khách hàng, tư vấn kiến thức chuyên ngành, hệ thống nội bộ doanh nghiệp,...
+- Trong project này, mục tiêu là tạo một chatbot có khả năng trả lời các câu hỏi xoay quanh một chủ đề cá nhân (ví dụ: blog của bạn, sản phẩm cá nhân, kiến thức chuyên sâu,...)
+
+---
+
+## Tổng quan dự án
+
+- Mô tả luồng hoạt động tổng thể của chatbot RAG:
+  1. Nhận câu hỏi từ người dùng
+  2. Dùng embedding để tìm các đoạn văn bản liên quan trong tập dữ liệu cá nhân
+  3. Đưa kết quả truy xuất + câu hỏi vào LLM để tạo câu trả lời
+- Giới thiệu công nghệ sử dụng:
+  - Python
+  - LangChain (quản lý pipeline RAG)
+  - Hugging Face Transformers (mô hình ngôn ngữ + embeddings)
+  - FAISS hoặc ChromaDB (vector store)
+  - Streamlit (tạo giao diện web đơn giản)
+
+---
+
+## Các bước xây dựng dự án
+
+### Bước 1: Chuẩn bị dữ liệu
+- Thu thập và xử lý dữ liệu văn bản (VD: blog, tài liệu PDF, file Markdown,...)
+- Dùng LangChain hoặc Hugging Face để tạo embedding cho dữ liệu
+
+### Bước 2: Tạo hệ thống truy xuất văn bản
+- Lưu trữ các vector embedding vào FAISS hoặc ChromaDB
+- Viết hàm tìm kiếm các đoạn văn bản phù hợp nhất với câu hỏi người dùng
+
+### Bước 3: Kết nối với mô hình LLM
+- Dùng mô hình pre-trained (như `gpt-4`, `mistral`, `phi`, hoặc `Llama`) để sinh câu trả lời từ đoạn văn được truy xuất
+
+### Bước 4: Xây dựng giao diện với Streamlit
+- Tạo form nhập câu hỏi
+- Hiển thị câu trả lời, cùng phần nguồn truy xuất (nếu cần)
+- Giao diện đơn giản, dễ dùng
+
+### Điểm cải tiến có thể đề cập:
+- Cải thiện chất lượng embedding (dùng mô hình khác)
+- Dùng RAG với mô hình local (open-source)
+
+---
+
+## Triển khai và kiểm thử
+
+- Cách chạy thử trên local
+- Các lưu ý khi triển khai:
+  - Kích thước dữ liệu ảnh hưởng đến thời gian phản hồi
+
+---
+
+## Tổng kết (Summary)
+
+- Tóm tắt lại quá trình:
+  - Thu thập dữ liệu → tạo embedding → truy xuất văn bản → sinh câu trả lời → giao diện
+- Những công nghệ đã học được qua bài:
+  - LangChain, Vector DB, Transformers, Streamlit
+- Gợi ý nâng cấp:
+  - Giao diện đẹp hơn (Streamlit component)
+  - Chat history
+
+---
+
+## 🎉 Chúc mừng bạn đã đọc xong bài viết!
+![Chúc mừng bạn đã đọc xong!](/static/images/blogs/anya-chucmung.png)
