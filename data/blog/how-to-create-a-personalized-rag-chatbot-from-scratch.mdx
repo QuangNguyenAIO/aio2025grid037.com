@@ -131,7 +131,7 @@ Sau khi cài đặt xong môi trường thì **xin chúc mừng bạn** đã vư
   embeddings = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL_NAME)
   ```
 - **Chunking**: Tách văn bản dài thành các đoạn ngắn hơn thay vì sử dụng các phương pháp truyền thống chỉ tách các văn bản theo độ dài thì mình sẽ sử dụng kỹ thuật **Semantic Chunking** để tách nhưng sẽ dựa vào mức độ ngữ nghĩa để tránh làm vỡ mạch văn và chia nhỏ các đoạn có cùng một chủ đề. Dưới đây là cách sử dụng SemanticChunker để triển khai:
-![Chúc mừng bạn đã đọc xong!](/static/images/blogs/rag-chatbot/Slide1.PNG)
+![chunking!](/static/images/blogs/rag-chatbot/Slide1.PNG)
   ```python
   semantic_splitter = SemanticChunker(
     embeddings=embeddings,
@@ -149,41 +149,187 @@ Sau khi cài đặt xong môi trường thì **xin chúc mừng bạn** đã vư
   - `breakpoint_threshold_amount`: Với giá trị `95`, ngưỡng cắt được đặt ở phân vị thứ 95. Điều này có nghĩa là chỉ khi sự khác biệt về ngữ nghĩa giữa hai câu hoặc đoạn vượt quá 95% các giá trị khác biệt khác thì điểm cắt mới được tạo.
   - `min_chunk_size`: Đây là kích thước tối thiểu của một đoạn văn sau khi cắt, được đặt là `500` ký tự. Tham số này đảm bảo rằng các đoạn không bị chia quá nhỏ, giúp duy trì ý nghĩa và mạch văn.
   - `add_start_index`: Khi được đặt là `True`, tham số này thêm chỉ số bắt đầu vào metadata của mỗi đoạn. Điều này hữu ích để theo dõi vị trí của đoạn trong văn bản gốc, đặc biệt khi cần tham chiếu ngược lại.
-  
-
+  - Thực hiện chia tài liệu:
+  ```python
+  documents = semantic_splitter.split_documents(documents)
+  ```
+- **Vector database**: Nhằm lưu trữ các chunk ở dưới dạng các vector phục vụ trong quá trình truy vấn. Dùng `Chroma`, **embedding model** và input là **documents** để khởi tạo vector database.
+  ```python
+  # khởi tạo vector database
+  vec_db = Chroma.from_documents(documents=documents, embedding=embeddings)
+  # giúp thực hiện truy vấn
+  retriever = vec_db.as_retriever() 
+  ```
+  - Cách thức truy vấn: 
+  ```python
+  result = retriever.invoke('Anya-chan là ai?')
+  # Trả về 1 list các tài liệu có liên quan đến prompt
+  ``` 
 
 ### Bước 3: Kết nối với mô hình LLM
-- Dùng mô hình pre-trained (như `gpt-4`, `mistral`, `phi`, hoặc `Llama`) để sinh câu trả lời từ đoạn văn được truy xuất
+- **Sử dụng model**: trong dụ án của mình mình dùng model [openchat-3.5-0106](https://huggingface.co/openchat/openchat-3.5-0106) làm LLM chính cho chatbot.
+![logo-openchat!](/static/images/blogs/rag-chatbot/logo_new.png)
+- Khởi tạo model:
+```python
+  # config giúp load model tốt hơn
+  nf4_config = BitsAndBytesConfig(
+  load_in_4bit=True,
+  bnb_4bit_quant_type="nf4",
+  bnb_4bit_use_double_quant=True,
+  bnb_4bit_compute_dtype=torch.bfloat16
+  )
+  # model và tokenizer
+  MODEL_NAME = "openchat/openchat-3.5-0106"
+  tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
+  model = AutoModelForCausalLM.from_pretrained(MODEL_NAME,
+                                              quantization_config=nf4_config,
+                                              low_cpu_mem_usage=True
+  )
+```
+- Tạo 1 pipeline để sử dụng:
+```python
+pipeline = pipeline(
+  "text-generation",
+  model=model,
+  tokenizer=tokenizer,
+  max_new_tokens=256,
+  device_map="auto",
+  pad_token_id=tokenizer.eos_token_id,
+)
+llm = HungingFacePipeline(pipeline=pipeline)
+```
+- Kết hợp lại với LangChain:
+```python
+# Kéo prompt từ hub
+prompt = hub.pull("rlm/rag-prompt")
+
+# Hàm định dạng tài liệu để sử dụng trong chuỗi
+def format_docs(docs):
+    return "\n\n".join(doc.page_content for doc in docs)
+
+# Xây dựng chuỗi RAG
+rag_chain = (
+    {"context": retriever | format_docs, "question": RunnablePassthrough()}
+    | prompt
+    | llm
+    | StrOutputParser()
+)
+
+# Cách chạy chuỗi RAG để trả lời câu hỏi
+result = rag_chain.invoke("Anya-chan là ai?")
+print(result)
+```
+- **Giải thích đoạn mã**:
+  - `prompt = hub.pull("rlm/rag-prompt")`: Kéo một prompt được định nghĩa sẵn từ LangChain Hub cho các ứng dụng RAG.
+  - `format_docs`: Định dạng các tài liệu được truy xuất thành một chuỗi văn bản duy nhất.
+  - `rag_chain`: Kết hợp các thành phần để truy xuất tài liệu, định dạng chúng, sử dụng prompt, gửi đến LLM và chuyển đổi đầu ra thành chuỗi văn bản.
+  - `rag_chain.invoke()`: Chạy chuỗi với một câu hỏi cụ thể và trả về câu trả lời từ LLM dựa trên ngữ cảnh được truy xuất.
+
+- **🎊Chúc mừng! Bạn vừa đạt được một bước tiến mới🎉** (Mở khóa kỹ năng mới - Tập trung liên tục)
+![chuc-mung-bạn!](/static/images/blogs/anya-chan-chuc-mung.gif)
 
 ### Bước 4: Xây dựng giao diện với Streamlit
-- Tạo form nhập câu hỏi
-- Hiển thị câu trả lời, cùng phần nguồn truy xuất (nếu cần)
-- Giao diện đơn giản, dễ dùng
 
-### Điểm cải tiến có thể đề cập:
-- Cải thiện chất lượng embedding (dùng mô hình khác)
-- Dùng RAG với mô hình local (open-source)
+- **Streamlit là gì?**: Đây là thư viện Python giúp tạo giao diện web tương tác nhanh chóng. Với chatbot RAG, Streamlit sẽ hỗ trợ xây dựng giao diện để upload file PDF, hiển thị lịch sử chat và nhập câu hỏi.
+- **Cấu trúc cơ bản**: Giao diện gồm sidebar để cài đặt và upload file, cùng khu vực chính hiển thị cuộc trò chuyện.
+- **Khởi tạo trạng thái**: Sử dụng `st.session_state` để lưu trữ thông tin như lịch sử chat và trạng thái mô hình:
+  ```python
+  if 'rag_chain' not in st.session_state:
+      st.session_state.rag_chain = None
+  if 'chat_history' not in st.session_state:
+      st.session_state.chat_history = []
+  if 'pdf_processed' not in st.session_state:
+      st.session_state.pdf_processed = False
+  ```
+- **Tải mô hình hiệu quả**: Dùng `@st.cache_resource` để tránh tải lại mô hình mỗi lần ứng dụng rerun:
+  ```python
+  @st.cache_resource
+  def load_embeddings():
+      return HuggingFaceEmbeddings(
+          "bkai-foundation-models/vietnamese-bi-encoder"
+      )
 
----
+  @st.cache_resource
+  def load_llm():
+      bnb_config = BitsAndBytesConfig(
+          load_in_4bit=True, 
+          bnb_4bit_quant_type="nf4"
+      )
+      model = AutoModelForCausalLM.from_pretrained(
+          "openchat/openchat-3.5-0106", 
+          quantization_config=bnb_config
+      )
+      tokenizer = AutoTokenizer.from_pretrained(
+          "openchat/openchat-3.5-0106"
+      )
+      return HuggingFacePipeline(
+          pipeline=pipeline(
+              "text-generation", 
+              model=model, 
+              tokenizer=tokenizer, 
+              max_new_tokens=512
+          )
+      )
+  ```
+- **Xử lý PDF**: Hàm `process_pdf` để đọc file, chia nhỏ và tạo chuỗi RAG:
+  ```python
+  def format_docs(docs):
+    return "\n\n".join(doc.page_content for doc in docs)
+  def process_pdf(uploaded):
+      loader = PyPDFLoader(uploaded)
+      docs = loader.load()
+      semantic_splitter = SemanticChunker(
+          embeddings=st.session_state.embeddings
+      )
+      docs = semantic_splitter.split_documents(docs)
+      vector_db = Chroma.from_documents(
+          docs, 
+          embedding=st.session_state.embeddings
+      )
+      retriever = vector_db.as_retriever()
+      rag_chain = (
+          {"context": retriever | format_docs, 
+           "question": RunnablePassthrough()} 
+          | hub.pull("rlm/rag-prompt") 
+          | st.session_state.llm 
+          | StrOutputParser()
+      )
+      return rag_chain, len(docs)
+  ```
+- **Giao diện chính**: Thiết lập bố cục với sidebar và khu vực chat:
+  ```python
+  def main():
+      st.set_page_config(
+          page_title="PDF RAG Chatbot", 
+          layout="wide"
+      )
+      st.title("PDF RAG Assistant")
+      with st.sidebar:
+          st.title("⚙️ Cài đặt")
+          if st.button("🔄 Xử lý PDF"):
+              st.session_state.rag_chain, num_chunks = process_pdf(uploaded)
+              st.session_state.pdf_processed = True
+          st.subheader("📋 Hướng dẫn")
+          st.markdown("1. Upload PDF\n2. Đặt câu hỏi\n3. Nhận trả lời")
+      user_input = st.chat_input("Nhập câu hỏi...")
+      if user_input and st.session_state.pdf_processed:
+          with st.chat_message("assistant"):
+              output = st.session_state.rag_chain.invoke(user_input)
+              st.write(output)
+  ```
+- **Tóm tắt**: Giao diện Streamlit giúp người dùng dễ dàng tương tác với chatbot, upload tài liệu và nhận câu trả lời dựa trên nội dung PDF.
 
-## Triển khai và kiểm thử
+## Summary
 
-- Cách chạy thử trên local
-- Các lưu ý khi triển khai:
-  - Kích thước dữ liệu ảnh hưởng đến thời gian phản hồi
-
----
-
-## Tổng kết (Summary)
-
-- Tóm tắt lại quá trình:
-  - Thu thập dữ liệu → tạo embedding → truy xuất văn bản → sinh câu trả lời → giao diện
-- Những công nghệ đã học được qua bài:
-  - LangChain, Vector DB, Transformers, Streamlit
-- Gợi ý nâng cấp:
-  - Giao diện đẹp hơn (Streamlit component)
-  - Chat history
-
+- **Tóm tắt lại quá trình**:
+  - Thu thập dữ liệu → tạo embedding → truy xuất văn bản → sinh câu trả lời → xây dựng giao diện với Streamlit.
+- **Những công nghệ đã học được qua bài**:
+  - LangChain để quản lý pipeline RAG.
+  - Vector DB (Chroma) để lưu trữ và truy xuất dữ liệu.
+  - Transformers để sử dụng mô hình ngôn ngữ và embeddings.
+  - Streamlit để tạo giao diện web tương tác.
+- **Summary về ứng dụng Streamlit**:
+  - Ứng dụng Streamlit cung cấp một giao diện thân thiện để tương tác với chatbot RAG, cho phép người dùng upload file PDF, đặt câu hỏi và nhận câu trả lời dựa trên nội dung tài liệu. Ứng dụng tích hợp các tính năng như quản lý lịch sử chat, xử lý tài liệu theo thời gian thực và phản hồi từ AI.
 ---
 
 ## 🎉 Chúc mừng bạn đã đọc xong bài viết!
