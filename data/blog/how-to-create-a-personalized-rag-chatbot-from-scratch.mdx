@@ -1,7 +1,7 @@
 ---
 title: How to Create a Personalized RAG Chatbot from Scratch
 date: 2025-7-4
-tags: ['python', 'AI', 'chatbot', 'RAG', 'transformers', 'ChromaDB', 'streamlit', 'langchain', 'machine learning', 'deeplearning' ]
+tags: ['python', 'AI', 'chatbot', 'RAG', 'transformers', 'streamlit', 'langchain', 'machine learning', 'deeplearning' ]
 summary: Bài viết này cung cấp hướng dẫn chi tiết cách tạo và triển khai một chatbot RAG cá nhân hóa bằng Python, sử dụng các thư viện như Transformers, LangChain và giao diện trực quan với Streamlit.
 ---
 
@@ -34,13 +34,123 @@ import Twemoji from './components/ui/Twemoji';
 
 ## Các bước xây dựng dự án
 
-### Bước 1: Chuẩn bị dữ liệu
-- Thu thập và xử lý dữ liệu văn bản (VD: blog, tài liệu PDF, file Markdown,...)
-- Dùng LangChain hoặc Hugging Face để tạo embedding cho dữ liệu
+### Bước 1: Cài đặt môi trường và thư viện cần thiết
 
-### Bước 2: Tạo hệ thống truy xuất văn bản
-- Lưu trữ các vector embedding vào FAISS hoặc ChromaDB
-- Viết hàm tìm kiếm các đoạn văn bản phù hợp nhất với câu hỏi người dùng
+- **Đối với Google Colab**: Nếu bạn sử dụng Google Colab, chỉ cần chạy các lệnh sau để cài đặt các thư viện cần thiết:
+  ```bash
+  !pip install -q transformers==4.52.4
+  !pip install -q bitsandbytes==0.46.0
+  !pip install -q accelerate==1.7.0
+  !pip install -q langchain==0.3.25
+  !pip install -q langchainhub==0.1.21
+  !pip install -q langchain-chroma==0.2.4
+  !pip install -q langchain_experimental==0.3.4
+  !pip install -q langchain-community==0.3.24
+  !pip install -q langchain_huggingface==0.2.0
+  !pip install -q python-dotenv==1.1.0
+  !pip install -q pypdf
+  ```
+
+- **Đối với môi trường local**: Nếu bạn chạy trên máy local, cần thiết lập môi trường Conda trước. Dưới đây là một file `environment.yaml` mẫu để tạo môi trường:
+  ```yaml
+  name: myenv
+  channels:
+    - pytorch
+    - nvidia
+    - conda-forge
+    - defaults
+  dependencies:
+    - python=3.12
+    - numpy
+    - pytorch=2.2.2
+    - pytorch-cuda=11.8
+  ```
+  Để tạo môi trường từ file YAML này, lưu nội dung vào file `environment.yaml`, sau đó chạy lệnh:
+  ```bash
+  conda env create -f environment.yaml
+  ```
+  Sau khi môi trường được tạo, kích hoạt môi trường bằng lệnh:
+  ```bash
+  conda activate myenv
+  ```
+  Tiếp theo, cài đặt các thư viện cần thiết bằng lệnh:
+  ```bash
+  pip install -r requirements.txt
+  ```
+  Nội dung file `requirements.txt` nên bao gồm:
+  ```
+  transformers==4.52.4
+  bitsandbytes==0.46.0
+  accelerate==1.7.0
+  langchain==0.3.25
+  langchainhub==0.1.21
+  langchain-chroma==0.2.4
+  langchain_experimental==0.3.4
+  langchain-community==0.3.24
+  langchain_huggingface==0.2.0
+  python-dotenv==1.1.0
+  pypdf
+  ```
+
+Sau khi cài đặt xong môi trường thì **xin chúc mừng bạn** đã vượt qua cửa ải đầu tiên.
+
+![Chúc mừng bạn!](/static/images/blogs/blender-anya.png)
+
+### Bước 2: Xây dựng hệ thống lưu trữ các vector embedding
+
+- **Import các thư viện cần thiết**: Đầu tiên, bạn cần import các thư viện để xây dựng hệ thống:
+  ```python
+  import torch
+  from transformers import BitsAndBytesConfig
+  from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
+  from langchain_huggingface import HuggingFaceEmbeddings
+  from langchain_huggingface.llms import HuggingFacePipeline
+  from langchain.memory import ConversationBufferMemory
+  from langchain_community.chat_message_histories import ChatMessageHistory
+  from langchain_community.document_loaders import PyPDFLoader, TextLoader
+  from langchain.chains import ConversationalRetrievalChain
+  from langchain_experimental.text_splitter import SemanticChunker
+  from langchain_chroma import Chroma
+  from langchain_text_splitters import RecursiveCharacterTextSplitter
+  from langchain_core.runnables import RunnablePassthrough
+  from langchain_core.output_parsers import StrOutputParser
+  from langchain import hub
+  ```
+
+- **Đọc file PDF**: Bạn hãy chuẩn bị và upload một file PDF tầm 20 trang trở lên để test khi xây dựng hệ thống. Sau đó, sử dụng class `PyPDFLoader` để đọc file PDF này lên như sau:
+  ```python
+  Loader = PyPDFLoader
+  FILE_PATH = "ten_file_cua_ban.pdf"
+  loader = Loader(FILE_PATH)
+  documents = loader.load()
+  ```
+- **Embedding model**: Là mô hình giúp vector hóa các văn bản nhằn thực hiện việc tính toán và lưu trữ, dưới đây là cách sử dụng HuggingFaceEmbeddings với mô hình bkai-foundation-models/vietnamese-bi-encoder được train để hiểu ngữ nghĩa với tiếng Việt.
+
+  ```python
+  EMBEDDING_MODEL_NAME = "bkai-foundation-models/vietnamese-bi-encoder"
+  embeddings = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL_NAME)
+  ```
+- **Chunking**: Tách văn bản dài thành các đoạn ngắn hơn thay vì sử dụng các phương pháp truyền thống chỉ tách các văn bản theo độ dài thì mình sẽ sử dụng kỹ thuật **Semantic Chunking** để tách nhưng sẽ dựa vào mức độ ngữ nghĩa để tránh làm vỡ mạch văn và chia nhỏ các đoạn có cùng một chủ đề. Dưới đây là cách sử dụng SemanticChunker để triển khai:
+![Chúc mừng bạn đã đọc xong!](/static/images/blogs/rag-chatbot/Slide1.PNG)
+  ```python
+  semantic_splitter = SemanticChunker(
+    embeddings=embeddings,
+    buffer_size=1,
+    breakpoint_threshold_type="percentile",
+    breakpoint_threshold_amount=95,
+    min_chunk_size=500,
+    add_start_index=True
+  )
+  ```
+  Giải thích các tham số:
+  - `embeddings`: Đây là mô hình embedding được sử dụng để tính toán ngữ nghĩa của văn bản. Mô hình này giúp xác định mức độ liên quan về mặt nội dung giữa các câu hoặc đoạn văn, từ đó hỗ trợ việc tách đoạn một cách chính xác hơn.
+  - `buffer_size`: Tham số này xác định số lượng câu hoặc đoạn văn được giữ trong bộ đệm để phân tích ngữ nghĩa. Với giá trị `1` có nghĩa là 1 nhóm gồm 1 câu.
+  - `breakpoint_threshold_type`: Đây là loại ngưỡng được sử dụng để xác định điểm cắt giữa các đoạn. Giá trị `"percentile"` cho biết ngưỡng được tính dựa trên tỉ lệ phần trăm của sự khác biệt ngữ nghĩa giữa các câu hoặc đoạn.
+  - `breakpoint_threshold_amount`: Với giá trị `95`, ngưỡng cắt được đặt ở phân vị thứ 95. Điều này có nghĩa là chỉ khi sự khác biệt về ngữ nghĩa giữa hai câu hoặc đoạn vượt quá 95% các giá trị khác biệt khác thì điểm cắt mới được tạo.
+  - `min_chunk_size`: Đây là kích thước tối thiểu của một đoạn văn sau khi cắt, được đặt là `500` ký tự. Tham số này đảm bảo rằng các đoạn không bị chia quá nhỏ, giúp duy trì ý nghĩa và mạch văn.
+  - `add_start_index`: Khi được đặt là `True`, tham số này thêm chỉ số bắt đầu vào metadata của mỗi đoạn. Điều này hữu ích để theo dõi vị trí của đoạn trong văn bản gốc, đặc biệt khi cần tham chiếu ngược lại.
+  
+
 
 ### Bước 3: Kết nối với mô hình LLM
 - Dùng mô hình pre-trained (như `gpt-4`, `mistral`, `phi`, hoặc `Llama`) để sinh câu trả lời từ đoạn văn được truy xuất
