@@ -1,0 +1,471 @@
+---
+title: Giải mã "Attention Is All You Need" và Triển khai Transformer từ đầu với PyTorch
+date: 2025-07-10
+tags: ['python', 'AI', 'NLP', 'pytorch', 'transformer', 'deeplearning', 'paper-review']
+summary: Cùng nhau "mổ xẻ" kiến trúc Transformer huyền thoại từ bài báo "Attention Is All You Need" và tự tay code lại bằng PyTorch.
+---
+
+import Twemoji from './components/ui/Twemoji';
+
+## Sự ra đời
+
+### Bối cảnh lịch sử
+Trước năm 2017, thế giới Xử lý Ngôn ngữ Tự nhiên (NLP) bị "thống trị" bởi các mạng nơ-ron hồi quy như **RNN**, **LSTM** và **GRU**. Mặc dù hiệu quả, chúng tồn tại những nhược điểm chí mạng:
+* **Xử lý tuần tự (Sequential processing):** Từ này phải đợi từ kia xử lý xong, không thể tính toán song song.
+* **Vấn đề phụ thuộc xa (Long-range dependencies):** Khó khăn trong việc ghi nhớ thông tin khi câu quá dài.
+
+Bài báo **"Attention Is All You Need"** của Google Brain (Vaswani et al., 2017) ra đời với tuyên bố: không cần RNN, chỉ cần cơ chế **Attention** là đủ.
+
+> **Kết quả:** Transformer ra đời, mở đường cho kỷ nguyên của BERT, GPT-3, GPT-4 và các mô hình GenAI hiện đại ngày nay.
+
+Trong bài viết này, chúng ta sẽ đi sâu vào kiến trúc và code lại nó bằng `torch`.
+
+---
+
+## Kiến trúc tổng quan
+
+Mô hình Transformer được thiết kế với kiến trúc **Encoder-Decoder** song song hoàn toàn, cho phép xử lý dữ liệu một cách hiệu quả trên GPU và TPU. Không giống như RNN phải xử lý tuần tự từng token, Transformer có thể xử lý toàn bộ sequence cùng lúc.
+
+### Luồng hoạt động chính:
+
+1. **Encoder (Mã hóa):** Nhận đầu vào (ví dụ: câu tiếng Anh) và chuyển đổi thành các vector biểu diễn ngữ nghĩa đa chiều. Encoder học cách nắm bắt ý nghĩa và mối quan hệ giữa các từ trong câu đầu vào.
+
+2. **Decoder (Giải mã):** Sử dụng vector từ Encoder để sinh ra đầu ra (ví dụ: câu tiếng Việt). Decoder hoạt động theo cơ chế tự hồi quy (auto-regressive), dự đoán từng token một cách tuần tự dựa trên các token đã sinh trước đó.
+
+### Ưu điểm chính:
+- **Tính song song cao:** Không có phụ thuộc tuần tự như RNN
+- **Xử lý long-range dependencies tốt:** Attention mechanism cho phép chú ý trực tiếp đến bất kỳ token nào
+- **Scalable:** Dễ dàng mở rộng với nhiều layers và heads
+
+### Cài đặt thư viện
+
+Để triển khai Transformer từ đầu, chúng ta cần cài đặt PyTorch và các thư viện liên quan. Có hai cách chính để cài đặt:
+
+#### Cách 1: Sử dụng Conda (Khuyến nghị)
+
+Tạo environment mới với file `environment.yml`:
+
+```yaml
+name: torch312_cuda118
+channels:
+  - pytorch
+  - nvidia
+  - conda-forge
+dependencies:
+  - python=3.12
+  - pytorch=2.5.1
+  - pytorch-cuda=11.8
+  - torchvision
+  - torchaudio
+  - numpy=2.3.5
+  - scikit-learn=1.7.2
+  - matplotlib
+  - pandas=2.3.3
+  - pip
+  - pip:
+      - seaborn
+```
+
+**Hướng dẫn cài đặt:**
+
+```bash
+# Tạo environment từ file yaml
+conda env create -f environment.yml
+
+# Kích hoạt environment
+conda activate torch312_cuda118
+
+# Kiểm tra cài đặt
+python -c "import torch; print('PyTorch version:', torch.__version__); print('CUDA available:', torch.cuda.is_available())"
+```
+
+#### Cách 2: Sử dụng pip
+
+Nếu bạn thích sử dụng pip trực tiếp:
+
+```bash
+pip install torch torchvision torchaudio
+```
+
+Trong code, chúng ta sẽ sử dụng:
+- `torch` và `torch.nn`: Framework deep learning chính
+- `math`: Cho các phép tính toán học (sin, cos, sqrt, etc.)
+
+**Lưu ý:** PyTorch đã tích hợp sẵn nhiều operations cần thiết, nên chúng ta không cần thêm thư viện nào khác. File YAML trên bao gồm các thư viện bổ sung có thể hữu ích cho việc phát triển và debugging.
+
+```python
+import torch
+import torch.nn as nn
+import math
+
+class InputEmbeddings(nn.Module):
+    def __init__(self, d_model: int, vocab_size: int):
+        super().__init__()
+        self.d_model = d_model
+        self.vocab_size = vocab_size
+        # Tạo ma trận embedding kích thước (vocab_size, d_model)
+        self.embedding = nn.Embedding(vocab_size, d_model)
+
+    def forward(self, x):
+        # Nhân với căn bậc 2 của d_model (theo bài báo) để scale giá trị
+        # Giúp gradient ổn định hơn khi d_model lớn
+        return self.embedding(x) * math.sqrt(self.d_model)
+```
+
+---
+
+## Kiến trúc Transformer: Tổng quan chi tiết
+
+Sau khi đã có khái niệm cơ bản về Encoder và Decoder, hãy đi sâu vào kiến trúc Transformer một cách chi tiết. Transformer được xây dựng dựa trên cơ chế **Attention** và **Multi-Head Attention**, loại bỏ hoàn toàn việc xử lý tuần tự như RNN.
+
+>Hình ảnh: Kiến trúc tổng quan Transformer với Encoder-Decoder
+
+### Các thành phần chính
+
+1. **Input Embeddings**: Chuyển đổi từ thành vector số học (đã implement ở trên).
+2. **Positional Encoding**: Thêm thông tin vị trí vào embeddings vì Transformer không có khái niệm thứ tự tự nhiên.
+3. **Multi-Head Attention**: Cơ chế chú ý đa đầu, cho phép mô hình tập trung vào nhiều phần khác nhau của input.
+4. **Feed-Forward Networks**: Mạng nơ-ron feed-forward áp dụng cho mỗi position.
+5. **Layer Normalization và Residual Connections**: Để ổn định training và cải thiện gradient flow.
+6. **Encoder Stack**: N chồng lên nhau của Encoder layers.
+7. **Decoder Stack**: Tương tự nhưng có thêm Masked Multi-Head Attention.
+
+---
+
+## Chi tiết các thành phần với code
+
+### 1. Positional Encoding
+
+Vì Transformer không sử dụng RNN, nó không có thông tin về thứ tự của các từ. Positional Encoding giải quyết vấn đề này bằng cách thêm vector vị trí vào embeddings.
+
+>Công thức: Positional Encoding với hàm sin và cos
+
+```python
+class PositionalEncoding(nn.Module):
+    def __init__(self, d_model: int, seq_len: int, dropout: float):
+        super().__init__()
+        self.d_model = d_model
+        self.seq_len = seq_len
+        self.dropout = nn.Dropout(dropout)
+
+        # Tạo ma trận PE có kích thước (seq_len, d_model)
+        pe = torch.zeros(seq_len, d_model)
+
+        # Tạo vector position từ 0 đến seq_len-1
+        position = torch.arange(0, seq_len, dtype=torch.float).unsqueeze(1)  # (seq_len, 1)
+
+        # Tính div_term = 10000^(2i/d_model)
+        div_term = torch.exp(torch.arange(0, d_model, 2).float() * (-math.log(10000.0) / d_model))  # (d_model/2,)
+
+        # Áp dụng sin cho vị trí chẵn (2i), cos cho vị trí lẻ (2i+1)
+        pe[:, 0::2] = torch.sin(position * div_term)  # Vị trí chẵn
+        pe[:, 1::2] = torch.cos(position * div_term)  # Vị trí lẻ
+
+        # Thêm batch dimension và transpose thành (1, seq_len, d_model)
+        pe = pe.unsqueeze(0)  # (1, seq_len, d_model)
+
+        # Đăng ký pe như buffer để không được update trong training
+        self.register_buffer('pe', pe)
+
+    def forward(self, x):
+        # Cộng positional encoding vào input embeddings
+        # x shape: (batch_size, seq_len, d_model)
+        x = x + (self.pe[:, :x.shape[1], :]).requires_grad_(False)
+        return self.dropout(x)
+```
+
+**Giải thích chi tiết:**
+- `position`: Vector chứa vị trí của mỗi token (0, 1, 2, ...)
+- `div_term`: Tính 10000^(2i/d_model) để tạo tần số khác nhau cho các chiều
+- Sinusoidal functions (sin/cos) cho phép mô hình học được relative positions tốt hơn
+- Dropout được áp dụng để tránh overfitting
+
+### 2. Multi-Head Attention
+
+Đây là trái tim của Transformer. Attention cho phép mô hình tập trung vào các phần quan trọng của input.
+
+>Hình ảnh: Cơ chế Multi-Head Attention với Scaled Dot-Product Attention
+
+```python
+class MultiHeadAttentionBlock(nn.Module):
+    def __init__(self, d_model: int, h: int, dropout: float):
+        super().__init__()
+        self.d_model = d_model
+        self.h = h  # Số heads
+
+        # Đảm bảo d_model chia hết cho h
+        assert d_model % h == 0, "d_model phải chia hết cho số heads h"
+
+        self.d_k = d_model // h  # Kích thước của mỗi head
+
+        # Linear layers để tạo Q, K, V
+        self.w_q = nn.Linear(d_model, d_model)  # Query
+        self.w_k = nn.Linear(d_model, d_model)  # Key
+        self.w_v = nn.Linear(d_model, d_model)  # Value
+
+        # Linear layer cuối cùng
+        self.w_o = nn.Linear(d_model, d_model)  # Output projection
+
+        self.dropout = nn.Dropout(dropout)
+
+    @staticmethod
+    def attention(query, key, value, mask, dropout: nn.Dropout):
+        d_k = query.shape[-1]
+
+        # Tính attention scores: (batch_size, h, seq_len, seq_len)
+        attention_scores = (query @ key.transpose(-2, -1)) / math.sqrt(d_k)
+
+        # Áp dụng mask nếu có (để tránh nhìn vào future tokens trong decoder)
+        if mask is not None:
+            attention_scores.masked_fill_(mask == 0, -1e9)
+
+        # Tính attention weights với softmax
+        attention_scores = attention_scores.softmax(dim=-1)  # (batch_size, h, seq_len, seq_len)
+
+        # Áp dụng dropout
+        if dropout is not None:
+            attention_scores = dropout(attention_scores)
+
+        # Tính output: (batch_size, h, seq_len, d_k)
+        return (attention_scores @ value), attention_scores
+
+    def forward(self, q, k, v, mask):
+        # q, k, v shape: (batch_size, seq_len, d_model)
+
+        # Linear transformations và reshape thành multi-head
+        query = self.w_q(q)  # (batch_size, seq_len, d_model)
+        key = self.w_k(k)    # (batch_size, seq_len, d_model)
+        value = self.w_v(v)  # (batch_size, seq_len, d_model)
+
+        # Reshape thành (batch_size, seq_len, h, d_k) và transpose thành (batch_size, h, seq_len, d_k)
+        query = query.view(query.shape[0], query.shape[1], self.h, self.d_k).transpose(1, 2)
+        key = key.view(key.shape[0], key.shape[1], self.h, self.d_k).transpose(1, 2)
+        value = value.view(value.shape[0], value.shape[1], self.h, self.d_k).transpose(1, 2)
+
+        # Tính attention
+        x, self.attention_scores = MultiHeadAttentionBlock.attention(query, key, value, mask, self.dropout)
+
+        # Concatenate heads và áp dụng linear transformation cuối
+        # x shape: (batch_size, h, seq_len, d_k) -> (batch_size, seq_len, h, d_k) -> (batch_size, seq_len, d_model)
+        x = x.transpose(1, 2).contiguous().view(x.shape[0], -1, self.h * self.d_k)
+
+        # Áp dụng linear layer cuối
+        return self.w_o(x)
+```
+
+**Giải thích chi tiết:**
+- **Multi-Head**: Chia d_model thành h heads, mỗi head học attention patterns khác nhau
+- **Scaled Dot-Product Attention**: Tính độ tương tự giữa query và key, scale bằng sqrt(d_k) để ổn định
+- **Mask**: Trong decoder, mask future tokens để tránh cheating
+- **Output projection**: Kết hợp thông tin từ tất cả heads
+
+### 3. Feed-Forward Network và Residual Connections
+
+```python
+class FeedForwardBlock(nn.Module):
+    def __init__(self, d_model: int, d_ff: int, dropout: float):
+        super().__init__()
+        self.linear_1 = nn.Linear(d_model, d_ff)  # Mở rộng dimension
+        self.dropout = nn.Dropout(dropout)
+        self.linear_2 = nn.Linear(d_ff, d_model)  # Thu hẹp về d_model
+
+    def forward(self, x):
+        # FFN(x) = max(0, xW1 + b1)W2 + b2
+        return self.linear_2(self.dropout(torch.relu(self.linear_1(x))))
+
+class ResidualConnection(nn.Module):
+    def __init__(self, features: int, dropout: float):
+        super().__init__()
+        self.dropout = nn.Dropout(dropout)
+        self.norm = nn.LayerNorm(features)
+
+    def forward(self, x, sublayer):
+        # Residual connection: x + dropout(sublayer(norm(x)))
+        return x + self.dropout(sublayer(self.norm(x)))
+```
+
+**Giải thích:**
+- **Feed-Forward**: Mạng 2 lớp với ReLU activation, giúp mô hình học non-linear transformations
+- **Residual Connection**: Cộng input với output của sublayer để tránh vanishing gradients
+- **Layer Norm**: Chuẩn hóa theo features để ổn định training
+
+---
+
+## Mô hình Encoder
+
+Encoder nhận input sequence và tạo ra representations cho decoder sử dụng.
+
+>Hình ảnh: Cấu trúc Encoder Block với Self-Attention và Feed-Forward Networks
+
+```python
+class EncoderBlock(nn.Module):
+    def __init__(self, features: int, self_attention_block: MultiHeadAttentionBlock, feed_forward_block: FeedForwardBlock, dropout: float):
+        super().__init__()
+        self.self_attention_block = self_attention_block
+        self.feed_forward_block = feed_forward_block
+        self.residual_connections = nn.ModuleList([ResidualConnection(features, dropout) for _ in range(2)])
+
+    def forward(self, x, src_mask):
+        # Self-attention với residual connection
+        x = self.residual_connections[0](x, lambda x: self.self_attention_block(x, x, x, src_mask))
+
+        # Feed-forward với residual connection
+        x = self.residual_connections[1](x, self.feed_forward_block)
+
+        return x
+
+class Encoder(nn.Module):
+    def __init__(self, features: int, layers: nn.ModuleList):
+        super().__init__()
+        self.layers = layers
+        self.norm = nn.LayerNorm(features)
+
+    def forward(self, x, mask):
+        for layer in self.layers:
+            x = layer(x, mask)
+        return self.norm(x)
+```
+
+**Giải thích Encoder:**
+- **Encoder Block**: Bao gồm self-attention và feed-forward với residual connections
+- **Stack of Blocks**: N layers chồng lên nhau, mỗi layer học representations phức tạp hơn
+- **Final Normalization**: Chuẩn hóa output cuối cùng
+
+---
+
+## Mô hình Decoder
+
+Decoder sinh output sequence dựa trên encoder output và previous output tokens.
+
+>Hình ảnh: Cấu trúc Decoder Block với Masked Self-Attention, Cross-Attention và Feed-Forward Networks
+
+```python
+class DecoderBlock(nn.Module):
+    def __init__(self, features: int, self_attention_block: MultiHeadAttentionBlock, cross_attention_block: MultiHeadAttentionBlock, feed_forward_block: FeedForwardBlock, dropout: float):
+        super().__init__()
+        self.self_attention_block = self_attention_block
+        self.cross_attention_block = cross_attention_block
+        self.feed_forward_block = feed_forward_block
+        self.residual_connections = nn.ModuleList([ResidualConnection(features, dropout) for _ in range(3)])
+
+    def forward(self, x, encoder_output, src_mask, tgt_mask):
+        # Masked self-attention (chỉ nhìn vào past tokens)
+        x = self.residual_connections[0](x, lambda x: self.self_attention_block(x, x, x, tgt_mask))
+
+        # Cross-attention với encoder output
+        x = self.residual_connections[1](x, lambda x: self.cross_attention_block(x, encoder_output, encoder_output, src_mask))
+
+        # Feed-forward
+        x = self.residual_connections[2](x, self.feed_forward_block)
+
+        return x
+
+class Decoder(nn.Module):
+    def __init__(self, features: int, layers: nn.ModuleList):
+        super().__init__()
+        self.layers = layers
+        self.norm = nn.LayerNorm(features)
+
+    def forward(self, x, encoder_output, src_mask, tgt_mask):
+        for layer in self.layers:
+            x = layer(x, encoder_output, src_mask, tgt_mask)
+        return self.norm(x)
+```
+
+**Giải thích Decoder:**
+- **Masked Self-Attention**: Chỉ cho phép nhìn vào tokens trước đó (auto-regressive)
+- **Cross-Attention**: Chú ý vào encoder output để lấy thông tin ngữ nghĩa
+- **Feed-Forward**: Tương tự encoder
+- **Stack of Blocks**: Tương tự encoder nhưng phức tạp hơn
+
+---
+
+## Ghép lại: Mô hình Transformer hoàn chỉnh
+
+```python
+class Transformer(nn.Module):
+    def __init__(self, encoder: Encoder, decoder: Decoder, src_embed: InputEmbeddings, tgt_embed: InputEmbeddings, src_pos: PositionalEncoding, tgt_pos: PositionalEncoding, projection_layer: nn.Linear):
+        super().__init__()
+        self.encoder = encoder
+        self.decoder = decoder
+        self.src_embed = src_embed
+        self.tgt_embed = tgt_embed
+        self.src_pos = src_pos
+        self.tgt_pos = tgt_pos
+        self.projection_layer = projection_layer
+
+    def encode(self, src, src_mask):
+        # Embedding + Positional Encoding
+        src = self.src_embed(src)
+        src = self.src_pos(src)
+
+        # Encoder
+        return self.encoder(src, src_mask)
+
+    def decode(self, encoder_output, src_mask, tgt, tgt_mask):
+        # Embedding + Positional Encoding
+        tgt = self.tgt_embed(tgt)
+        tgt = self.tgt_pos(tgt)
+
+        # Decoder
+        return self.decoder(tgt, encoder_output, src_mask, tgt_mask)
+
+    def project(self, x):
+        # Dự đoán token tiếp theo
+        return self.projection_layer(x)
+
+# Hàm tạo Transformer model
+def build_transformer(src_vocab_size, tgt_vocab_size, src_seq_len, tgt_seq_len, d_model=512, N=6, h=8, dropout=0.1, d_ff=2048):
+    # Tạo embeddings
+    src_embed = InputEmbeddings(d_model, src_vocab_size)
+    tgt_embed = InputEmbeddings(d_model, tgt_vocab_size)
+
+    # Positional encoding
+    src_pos = PositionalEncoding(d_model, src_seq_len, dropout)
+    tgt_pos = PositionalEncoding(d_model, tgt_seq_len, dropout)
+
+    # Tạo encoder blocks
+    encoder_blocks = []
+    for _ in range(N):
+        encoder_self_attention_block = MultiHeadAttentionBlock(d_model, h, dropout)
+        feed_forward_block = FeedForwardBlock(d_model, d_ff, dropout)
+        encoder_block = EncoderBlock(d_model, encoder_self_attention_block, feed_forward_block, dropout)
+        encoder_blocks.append(encoder_block)
+
+    # Tạo decoder blocks
+    decoder_blocks = []
+    for _ in range(N):
+        decoder_self_attention_block = MultiHeadAttentionBlock(d_model, h, dropout)
+        decoder_cross_attention_block = MultiHeadAttentionBlock(d_model, h, dropout)
+        feed_forward_block = FeedForwardBlock(d_model, d_ff, dropout)
+        decoder_block = DecoderBlock(d_model, decoder_self_attention_block, decoder_cross_attention_block, feed_forward_block, dropout)
+        decoder_blocks.append(decoder_block)
+
+    # Tạo encoder và decoder
+    encoder = Encoder(d_model, nn.ModuleList(encoder_blocks))
+    decoder = Decoder(d_model, nn.ModuleList(decoder_blocks))
+
+    # Projection layer
+    projection_layer = nn.Linear(d_model, tgt_vocab_size)
+
+    # Tạo transformer
+    transformer = Transformer(encoder, decoder, src_embed, tgt_embed, src_pos, tgt_pos, projection_layer)
+
+    # Initialize parameters
+    for p in transformer.parameters():
+        if p.dim() > 1:
+            nn.init.xavier_uniform_(p)
+
+    return transformer
+```
+
+**Giải thích kiến trúc hoàn chỉnh:**
+- **encode()**: Xử lý input source qua embedding, positional encoding và encoder stack
+- **decode()**: Sử dụng encoder output và target sequence để sinh output
+- **project()**: Chuyển đổi decoder output thành logits cho vocabulary
+- **build_transformer()**: Factory function tạo model với các hyperparameters từ bài báo gốc
+
+---
+
+## 🎉 Chúc mừng bạn đã đọc xong bài viết!
+![Chúc mừng bạn đã đọc xong!](/static/images/blogs/anya-chan-chuc-mung.gif)
